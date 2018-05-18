@@ -1,0 +1,29 @@
+.Scramble-section {
+  margin: 10px 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.Scramble-section button {
+  width: 32px;
+  height: 24px;
+  margin-left: 16px;
+  color: #333;
+  border-color: #333;
+  background-color: #F9F9F9;
+  outline:0;
+  cursor: pointer;
+}
+
+.Scramble-section button:active {
+  background-color: #EEEEEE;
+}
+
+.Scramble-section button:first-of-type {
+  margin-left: 80px;
+}
+
+.Scramble-common {
+  font-size: 20px;
+  font-family: monospace, monospace;
+}

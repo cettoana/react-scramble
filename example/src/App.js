@@ -1,21 +1,43 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { Component } from 'react'
+
+import Title from './components/Title'
+import './App.css'
+
+import ScrambleExamples from './examples/ScrambleExamples'
+import DescrambleExamples from './examples/DescrambleExamples'
 
 class App extends Component {
+  state = { dps: 25 }
+
+  start = () => {
+    this.state.start()
+  }
+
+  pause = () => {
+    this.state.pause()
+  }
+
   render() {
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
+        <section>
+          <Title />
+        </section>
+        <section>
+          <div className="App-examples-wrap">
+            <h3>Scramble</h3>
+            <ScrambleExamples />
+          </div>
+        </section>
+        <section>
+          <div className="App-examples-wrap">
+            <h3>Descramble</h3>
+            <DescrambleExamples />
+          </div>
+        </section>
       </div>
-    );
+    )
   }
 }
 
-export default App;
+export default App
