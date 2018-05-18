@@ -1,0 +1,16 @@
+{
+  "presets": [
+    [
+      "env",
+      {
+        "modules": false
+      }
+    ],
+    "react",
+    "stage-1"
+  ],
+  "plugins": [
+    "external-helpers",
+    "ramda"
+  ]
+}

@@ -1,0 +1,15 @@
+# exmaple
+/example
+
+# dependencies
+/node_modules
+
+# source
+/src
+
+.babelrc
+.eslintrc
+.gitignore
+.npmignore
+rollup.config.js
+yarn.lock
