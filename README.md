@@ -10,6 +10,8 @@
 
 React component for text scramble animation.
 
+[Live Demo](https://cettoana.github.io/react-scramble)
+
 ## Installation
 
 ```bash
@@ -46,10 +48,6 @@ class App extends React.Compoent {
 ```
 
 Remember to use `monospace` fonts to make it looks better.
-
-## Live Demo
-
-See the [live demo](https://cettoana.github.io/react-scramble-draft)
 
 ## Step Format
 
