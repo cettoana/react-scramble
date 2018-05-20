@@ -8,6 +8,10 @@
     "build:demo": "cd example && yarn build",
     "deploy:demo": "gh-pages -d example/build"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cettoana/react-scramble.git"
+  },
   "dependencies": {
     "prop-types": "^15.6.1",
     "ramda": "^0.25.0",
@@ -29,5 +33,9 @@
     "gh-pages": "^1.1.0",
     "rollup": "^0.57.1",
     "rollup-plugin-babel": "^3.0.3"
-  }
+  },
+  "keywords": [
+    "react",
+    "react-component"
+  ]
 }
