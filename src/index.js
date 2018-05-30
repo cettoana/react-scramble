@@ -23,6 +23,7 @@ const omitProps = [
   'pause',
   'preScramble',
   'reset',
+  'restart',
   'speed',
   'start',
   'steps',
