@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Add `noBreakSpace` prop to Scramble component.
+
 ### Fixed
 
 - Break after reset under certain circumstances.

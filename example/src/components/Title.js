@@ -1,5 +1,5 @@
 import React from 'react'
-import Scramble from 'react-scramble'
+import Scramble, { getNoBreakSpaces } from 'react-scramble'
 import './Title.css'
 
 const Title = () => (
@@ -40,7 +40,7 @@ const Title = () => (
     />
     <Scramble
       autoStart
-      text="_______________"
+      text={getNoBreakSpaces(15)}
       steps={[
         { roll: 40 },
         {
@@ -61,14 +61,13 @@ const Title = () => (
     />
     <Scramble
       autoStart
-      text="_______________"
+      text={getNoBreakSpaces(15)}
       steps={[
         { roll: 50 },
         {
           roll: 30,
           type: 'all',
           action: '+',
-
         },
         {
           roll: 35,
