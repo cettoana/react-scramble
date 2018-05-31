@@ -15,7 +15,7 @@ export const getFullMask = R.pipe(
   R.map(R.always(1)),
 )
 
-export const getForwardMask = (length, roll = length, count = length) => {
+export const getForwardMask = (length, roll = length, count = roll) => {
   const base = R.pipe(
     R.divide,
     Math.floor,
