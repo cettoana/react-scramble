@@ -53,25 +53,26 @@ Remember to use `monospace` fonts to make it looks better.
 
 Each step is an `Object` with following keys:
 
-| Key                | Type     | Default   | Description                                                                             |
-| :----------------- | :------- | :-------- | :-------------------------------------------------------------------------------------- |
-| action             | string   |           | Action of the step, `+` as scramble, `-` as descramble and leave blank for do nothing.  |
-| roll               | number   |           | Times of action in the step.                                                            |
-| text               | string   |           | Change the original text.                                                               |
-| type               | string   | `all`     | Scramble/descrmble type of the step, one of `all`, `random`, `forward`.                 |
+| Key    | Type   | Default | Description                                                                            |
+| :----- | :----- | :------ | :------------------------------------------------------------------------------------- |
+| action | string |         | Action of the step, `+` as scramble, `-` as descramble and leave blank for do nothing. |
+| roll   | number |         | Times of action in the step.                                                           |
+| text   | string |         | Change the original text.                                                              |
+| type   | string | `all`   | Scramble/descrmble type of the step, one of `all`, `random`, `forward`.                |
 
 ## Scramble Props
 
-| Property           | Type     | Default   | Description                                                                       |
-| :----------------- | :------- | :-------- | :-------------------------------------------------------------------------------- |
-| autoStart          | boolean  | false     | Set `true` to auto start animation after render.                                  |
-| bindMethod         | function |           | Method binding callback function, see [Bind Methods](#bind-methods).                |
-| mouseEnterTrigger  | string   |           | Event trigger type when mouse enter, one of `start`, `pause`, `reset`, `restart`. |
-| mouseLeaveTrigger  | string   |           | Event trigger type when mouse leave, one of `start`, `pause`, `reset`, `restart`. |
-| preScramble        | boolean  | false     | Scramble the text after render.                                                   |
-| speed              | string   | `medium`  | Speed of scramble per second, one of `slow`, `mediun`, `fast`.                    |
-| steps              | array    |           | Scramble steps, a list of `Object` in [Step](#step-format) format.                |
-| text               | string   |           | Original text.                                                                    |
+| Property          | Type     | Default  | Description                                                                       |
+| :---------------- | :------- | :------- | :-------------------------------------------------------------------------------- |
+| autoStart         | boolean  | false    | Set `true` to auto start animation after render.                                  |
+| bindMethod        | function |          | Method binding callback function, see [Bind Methods](#bind-methods).              |
+| mouseEnterTrigger | string   |          | Event trigger type when mouse enter, one of `start`, `pause`, `reset`, `restart`. |
+| mouseLeaveTrigger | string   |          | Event trigger type when mouse leave, one of `start`, `pause`, `reset`, `restart`. |
+| noBreakSpace      | boolean  | false    | Using no-break space or not.                                                      |
+| preScramble       | boolean  | false    | Scramble the text after render.                                                   |
+| speed             | string   | `medium` | Speed of scramble per second, one of `slow`, `mediun`, `fast`.                    |
+| steps             | array    |          | Scramble steps, a list of `Object` in [Step](#step-format) format.                |
+| text              | string   |          | Original text.                                                                    |
 
 ## Bind Methods
 
