@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2018-05-31
+
 ### Added
 
 - Add `noBreakSpace` prop to Scramble component.
