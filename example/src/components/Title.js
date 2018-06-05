@@ -11,7 +11,7 @@ const Title = () => (
       steps={[
         {
           roll: 10,
-          text: "Scramble React",
+          text: 'Scramble React',
         },
         {
           roll: 10,
@@ -50,7 +50,7 @@ const Title = () => (
         },
         {
           roll: 10,
-          text: "like this one,",
+          text: 'like this one,',
         },
         {
           roll: 30,
@@ -71,7 +71,7 @@ const Title = () => (
         },
         {
           roll: 35,
-          text: "and this :)",
+          text: 'and this :)',
         },
         {
           roll: 20,

@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Upgrade rxjs to v6.
+
 ## [0.2.0] - 2018-05-31
 
 ### Added

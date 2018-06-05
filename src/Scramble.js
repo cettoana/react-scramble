@@ -1,21 +1,35 @@
 import * as React from 'react'
-import rxjsObservableConfig from 'recompose/rxjsObservableConfig'
 import setObservableConfig from 'recompose/setObservableConfig'
 import createEventHandler from 'recompose/createEventHandler'
 import compose from 'recompose/compose'
-import setPropTypes from 'recompose/setPropTypes'
 import mapPropsStream from 'recompose/mapPropsStream'
 import withHandlers from 'recompose/withHandlers'
 import withPropsOnChange from 'recompose/withPropsOnChange'
 import lifecycle from 'recompose/lifecycle'
-import Rx from 'rxjs'
+import {
+  pluck,
+  distinctUntilChanged,
+  share,
+  map,
+  filter,
+  startWith,
+  mapTo,
+  withLatestFrom,
+  switchMap,
+} from 'rxjs/operators'
+import { Subject, merge, combineLatest, empty, interval, from } from 'rxjs'
 import R from 'ramda'
 import PropTypes from 'prop-types'
 
 import { scramble, descramble, mixcramble } from './utils/scramblers'
 import { getRandomMask, getFullMask, getForwardMask } from './utils/getMask'
 
-setObservableConfig(rxjsObservableConfig)
+const config = {
+  fromESObservable: from,
+  toESObservable: stream => stream,
+}
+
+setObservableConfig(config)
 
 const omitProps = [
   'autoStart',
@@ -39,194 +53,189 @@ const speed = {
   slow: 100,
 }
 
-export default compose(
-  setPropTypes({
-    autoStart: PropTypes.bool,
-    bindMethod: PropTypes.func,
-    mouseEnterTrigger: PropTypes.oneOf(['start', 'pause', 'reset', 'restart']),
-    mouseLeaveTrigger: PropTypes.oneOf(['start', 'pause', 'reset', 'restart']),
-    noBreakSpace: PropTypes.bool,
-    speed: PropTypes.string,
-    steps: PropTypes.array,
-    text: PropTypes.string,
-  }),
+export const getPauserStream = (
+  autoStart$,
+  isQueueEmpty$,
+  pause$,
+  reset$,
+  start$
+) =>
+  merge(
+    combineLatest(autoStart$, reset$.pipe(startWith(''))).pipe(
+      map(R.head),
+      map(R.not)
+    ),
+    pause$.pipe(mapTo(true)),
+    start$.pipe(
+      withLatestFrom(isQueueEmpty$),
+      map(R.nth(1))
+    ),
+    isQueueEmpty$.pipe(filter(R.identity))
+  )
+
+export const getPropStream = (props$, key) =>
+  props$.pipe(
+    pluck(key),
+    distinctUntilChanged()
+  )
+
+const Scramble = compose(
   mapPropsStream(props$ => {
     const { handler: start, stream: start$ } = createEventHandler()
     const { handler: pause, stream: pause$ } = createEventHandler()
     const { handler: reset, stream: reset$ } = createEventHandler()
-    const queue$ = new Rx.Subject()
-    const counter$ = new Rx.Subject()
-    const result$ = new Rx.Subject()
+    const queue$ = new Subject()
+    const counter$ = new Subject()
+    const result$ = new Subject()
 
-    const autoStart$ = props$
-      .map(R.propOr(false, 'autoStart'))
-      .distinctUntilChanged()
+    const autoStart$ = getPropStream(props$, 'autoStart')
+    const preScramble$ = getPropStream(props$, 'preScramble')
+    const noBreakSpace$ = getPropStream(props$, 'noBreakSpace')
 
-    const preScramble$ = props$
-      .map(R.propOr(false, 'preScramble'))
-      .distinctUntilChanged()
-
-    const initText$ = props$
-      .pluck('text')
-      .distinctUntilChanged()
-      .share()
-
-    const steps$ = props$
-      .map(R.propOr([], 'steps'))
-      .distinctUntilChanged()
-      .share()
-
-    const period$ = props$
-      .map(R.propOr('medium', 'speed'))
-      .distinctUntilChanged()
-      .map(R.prop(R.__, speed))
-
-    const noBreakSpace$ = props$
-      .map(R.propOr(true, 'noBreakSpace'))
-      .distinctUntilChanged()
-
-    const currentStep$ = queue$
-      .map(R.pathOr({}, [0]))
-      .share()
-
-    const text$ = currentStep$
-      .map(R.prop('text'))
-      .filter(R.is(String))
-      .merge(initText$.combineLatest(reset$.startWith(''), R.identity))
-      .distinctUntilChanged()
-
-    const pauser$ = Rx.Observable.merge(
-      autoStart$.map(R.not),
-      pause$.mapTo(true),
-      reset$.withLatestFrom(autoStart$, (_, autoStart) => !autoStart),
-      start$.withLatestFrom(queue$, (_, queue) => queue.length === 0),
-      queue$
-        .map(queue => queue.length === 0)
-        .filter(R.identity),
+    const initText$ = getPropStream(props$, 'text').pipe(share())
+    const steps$ = getPropStream(props$, 'steps').pipe(share())
+    const period$ = getPropStream(props$, 'speed').pipe(
+      map(R.prop(R.__, speed))
     )
 
-    const processor$ = currentStep$.map(({ action, type }) => {
-      switch(action) {
-        case '+':
-          return scramble
-        case '-':
-          return type === 'forward' ? mixcramble : descramble
-        default:
-          return R.identity
-      }
-    })
+    const currentStep$ = queue$.pipe(
+      map(R.pathOr({}, [0])),
+      share()
+    )
 
-    const mask$ = Rx.Observable
-      .combineLatest(
-        currentStep$,
-        counter$,
-        result$,
-        text$,
-        ({ type, roll }, counter, result, text) => {
-          const length = R.max(result.length, text.length)
+    const isQueueEmpty$ = queue$.pipe(
+      map(
+        R.pipe(
+          R.length,
+          R.equals(0)
+        )
+      ),
+      share()
+    )
 
-          switch(type) {
-            case 'random':
-              return getRandomMask(length)
-            case 'forward':
-              return getForwardMask(length, roll, counter)
-            case 'all':
-            default:
-              return getFullMask(length)
-          }
+    const text$ = merge(
+      currentStep$.pipe(
+        pluck('text'),
+        filter(R.is(String))
+      ),
+      combineLatest(initText$, reset$.pipe(startWith(''))).pipe(map(R.head))
+    ).pipe(distinctUntilChanged())
+
+    const pauser$ = getPauserStream(
+      autoStart$,
+      isQueueEmpty$,
+      pause$,
+      reset$,
+      start$
+    )
+
+    const processor$ = currentStep$.pipe(
+      map(({ action, type }) => {
+        switch (action) {
+          case '+':
+            return scramble
+          case '-':
+            return type === 'forward' ? mixcramble : descramble
+          default:
+            return R.identity
         }
+      })
+    )
+
+    const mask$ = combineLatest(currentStep$, counter$, result$, text$).pipe(
+      map(([{ type, roll }, counter, result, text]) => {
+        const length = R.max(result.length, text.length)
+
+        switch (type) {
+          case 'random':
+            return getRandomMask(length)
+          case 'forward':
+            return getForwardMask(length, roll, counter)
+          case 'all':
+          default:
+            return getFullMask(length)
+        }
+      })
+    )
+
+    const pausableTimer$ = combineLatest(pauser$, period$).pipe(
+      switchMap(
+        ([paused, period]) =>
+          paused
+            ? empty()
+            : // startWith 0 to send event immediately
+              interval(period).pipe(startWith(0))
       )
+    )
 
-    const pausableTimer$ = pauser$
-      .combineLatest(period$)
-      .switchMap(([paused, period]) => paused
-        ? Rx.Observable.empty()
-        // startWith 0 to send event immediately
-        : Rx.Observable.interval(period).startWith(0)
+    merge(
+      combineLatest(initText$, preScramble$, reset$.pipe(startWith(''))).pipe(
+        map(
+          ([text, preScramble]) =>
+            preScramble ? scramble(null, text, getFullMask(text.length)) : text
+        )
+      ),
+      pausableTimer$.pipe(
+        withLatestFrom(result$, text$, processor$, mask$, noBreakSpace$),
+        map(([, result, text, processor, mask, noBreakSpace]) =>
+          processor(result, text, mask, noBreakSpace)
+        )
       )
+    ).subscribe(result$)
 
-    Rx.Observable
-      .merge(
-        initText$
-          .combineLatest(
-            preScramble$,
-            reset$.startWith(''),
-            (text, preScramble) => preScramble
-              ? scramble(null, text, getFullMask(text.length))
-              : text
-          ),
-        pausableTimer$
-          .withLatestFrom(
-            result$,
-            text$,
-            processor$,
-            mask$,
-            noBreakSpace$,
-            (_, result, text, processor, mask, noBreakSpace) => processor(result, text, mask, noBreakSpace),
-          )
+    merge(
+      currentStep$.pipe(pluck('roll')),
+      pausableTimer$.pipe(
+        withLatestFrom(currentStep$, result$, text$, counter$),
+        map(([, { type, action }, result, text, counter]) => {
+          if (!R.isNil(counter)) {
+            return counter - 1
+          }
+
+          if (type === 'forward') {
+            return R.max(result.length, text.length) - 1
+          }
+
+          if (action === '-' && text === result) {
+            return 0
+          }
+
+          // endless loop when counter is undefined
+          return
+        })
       )
-      .subscribe(result$)
+    ).subscribe(counter$)
 
-    Rx.Observable
-      .merge(
-        currentStep$.map(R.prop('roll')),
-        pausableTimer$
-          .withLatestFrom(
-            currentStep$,
-            result$,
-            text$,
-            counter$,
-            (_, { type, action }, result, text, counter) => {
-              if (!R.isNil(counter)) {
-                return counter - 1
-              }
-
-              if (type === 'forward') {
-                return R.max(result.length, text.length)
-              }
-
-              if (action === '-' && text === result) {
-                return 0
-              }
-
-              // endless loop when counter is undefined
-              return
-            }
-          ),
+    merge(
+      steps$,
+      reset$.pipe(
+        withLatestFrom(steps$),
+        map(R.nth(1))
+      ),
+      counter$.pipe(
+        filter(R.equals(0)),
+        withLatestFrom(queue$),
+        map(R.nth(1)),
+        map(R.drop(1))
       )
-      .subscribe(counter$)
+    ).subscribe(queue$)
 
-    Rx.Observable
-      .merge(
-        steps$,
-        reset$.withLatestFrom(steps$, R.nthArg(1)),
-        counter$
-          .filter(R.equals(0))
-          .withLatestFrom(queue$, R.nthArg(1))
-          .map(R.drop(1)),
-      )
-      .subscribe(queue$)
-
-    return props$.combineLatest(
-      result$,
-      (props, result) => ({
+    return combineLatest(props$, result$).pipe(
+      map(([props, result]) => ({
         ...props,
         result,
         start,
         pause,
         reset,
-      })
+      }))
     )
   }),
-  withPropsOnChange(
-    ['start', 'reset'],
-    props => ({
-      restart: () => {
-        props.reset()
-        props.start()
-      },
-    })
-  ),
+  withPropsOnChange(['start', 'reset'], props => ({
+    restart: () => {
+      props.reset()
+      props.start()
+    },
+  })),
   lifecycle({
     componentDidMount() {
       const { bindMethod } = this.props
@@ -243,28 +252,43 @@ export default compose(
   }),
   withHandlers({
     onMouseEnter: props => () => {
-      const {
-        onMouseEnter,
-        mouseEnterTrigger,
-      } = props
+      const { onMouseEnter, mouseEnterTrigger } = props
       const action = props[mouseEnterTrigger]
 
       R.is(Function, onMouseEnter) && onMouseEnter()
       R.is(Function, action) && action()
     },
     onMouseLeave: props => () => {
-      const {
-        onMouseLeave,
-        mouseLeaveTrigger,
-      } = props
+      const { onMouseLeave, mouseLeaveTrigger } = props
       const action = props[mouseLeaveTrigger]
 
       R.is(Function, onMouseLeave) && onMouseLeave()
       R.is(Function, action) && action()
     },
-  }),
-)(({ result = '', ...otherProps}) => (
-  <span {...R.omit(omitProps, otherProps)}>
-    {result}
-  </span>
+  })
+)(({ result = '', ...otherProps }) => (
+  <span {...R.omit(omitProps, otherProps)}>{result}</span>
 ))
+
+Scramble.displayName = 'Scramble'
+
+Scramble.propTypes = {
+  autoStart: PropTypes.bool,
+  bindMethod: PropTypes.func,
+  mouseEnterTrigger: PropTypes.oneOf(['start', 'pause', 'reset', 'restart']),
+  mouseLeaveTrigger: PropTypes.oneOf(['start', 'pause', 'reset', 'restart']),
+  noBreakSpace: PropTypes.bool,
+  speed: PropTypes.string,
+  steps: PropTypes.array,
+  text: PropTypes.string,
+}
+
+Scramble.defaultProps = {
+  autoStart: false,
+  preScramble: false,
+  steps: [],
+  speed: 'medium',
+  noBreakSpace: true,
+}
+
+export default Scramble

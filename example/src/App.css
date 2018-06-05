@@ -11,7 +11,7 @@
 }
 
 .App > section:nth-child(2n) {
-  background-color: #EFEFEF;
+  background-color: #efefef;
 }
 
 .App-examples-wrap {

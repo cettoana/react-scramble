@@ -3,6 +3,4 @@ import getNoBreakSpaces from './utils/getNoBreakSpaces'
 
 export default Scramble
 
-export {
-  getNoBreakSpaces,
-}
+export { getNoBreakSpaces }
