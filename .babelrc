@@ -1,16 +1,30 @@
 {
-  "presets": [
-    [
-      "env",
-      {
-        "modules": false
-      }
-    ],
-    "react",
-    "stage-1"
-  ],
-  "plugins": [
-    "external-helpers",
-    "ramda"
-  ]
+  "env": {
+    "test": {
+      "presets": [
+        "env",
+        "react",
+        "stage-1"
+      ],
+      "plugins": [
+        "ramda"
+      ]
+    },
+    "development": {
+      "presets": [
+        [
+          "env",
+          {
+            "modules": false
+          }
+        ],
+        "react",
+        "stage-1"
+      ],
+      "plugins": [
+        "external-helpers",
+        "ramda"
+      ]
+    }
+  }
 }
