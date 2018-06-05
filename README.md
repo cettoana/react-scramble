@@ -6,7 +6,8 @@
   <br>
 </h1>
 
-[![npm](https://img.shields.io/npm/v/react-scramble.svg)](https://www.npmjs.com/package/react-scramble)
+[![npm version](https://img.shields.io/npm/v/react-scramble.svg?style=flat-square)](https://www.npmjs.com/package/react-scramble)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](#badge)
 
 React component for text scramble animation.
 
@@ -68,7 +69,7 @@ Each step is an `Object` with following keys:
 | bindMethod        | function |          | Method binding callback function, see [Bind Methods](#bind-methods).              |
 | mouseEnterTrigger | string   |          | Event trigger type when mouse enter, one of `start`, `pause`, `reset`, `restart`. |
 | mouseLeaveTrigger | string   |          | Event trigger type when mouse leave, one of `start`, `pause`, `reset`, `restart`. |
-| noBreakSpace      | boolean  | false    | Using no-break space or not.                                                      |
+| noBreakSpace      | boolean  | true     | Using no-break space or not.                                                      |
 | preScramble       | boolean  | false    | Scramble the text after render.                                                   |
 | speed             | string   | `medium` | Speed of scramble per second, one of `slow`, `mediun`, `fast`.                    |
 | steps             | array    |          | Scramble steps, a list of `Object` in [Step](#step-format) format.                |
