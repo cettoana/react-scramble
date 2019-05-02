@@ -4,8 +4,17 @@
 # dependencies
 /node_modules
 
+# test coverage
+/coverage
+
 # source
 /src
+
+# media
+/media
+
+# misc
+.DS_Store
 
 .babelrc
 .eslintrc
